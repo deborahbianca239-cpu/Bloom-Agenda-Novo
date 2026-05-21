@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro - Bloom Agenda</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <h2>Bloom Agenda</h2>
+      <p class="subtitle">
+        Crie sua conta e comece a organizar sua rotina.
+      </p>
+      <form id="signupForm">
+        <div class="input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" id="nome" placeholder="Nome completo" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" placeholder="E-mail" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="senha" placeholder="Criar senha" required />
+        </div>
+        <button type="submit" class="login-btn">
+          <i class="fas fa-user-plus"></i> Cadastrar
+        </button>
+        <div id="errorMsg" class="error">Erro ao cadastrar. Tente novamente!</div>
+        <div id="successMsg" class="success">
+          Cadastro realizado com sucesso! Redirecionando...
+        </div>
+      </form>
+      <div class="links">
+        <a href="index.html" class="back-link">
+          <i class="fas fa-arrow-left"></i> Já tem conta? Faça login
+        </a>
+      </div>
+
+   <script>
+  // Captura o formulário usando o ID correto do seu HTML
+  const form = document.getElementById("signupForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Impede a página de recarregar
+
+    // Pega os valores digitados nos inputs
+    const nome = document.getElementById("nome").value;
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+
+    // Reseta as mensagens visuais da tela antes de tentar enviar
+    document.getElementById("errorMsg").style.display = "none";
+    document.getElementById("successMsg").style.display = "none";
+
+    try {
+      // Faz a requisição real para o seu backend na porta correta (3006)
+      const response = await fetch("http://localhost:3006/cadastro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nome, email, senha }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Mostra a caixinha verde de sucesso estilizada que você já tem na tela
+        document.getElementById("successMsg").style.display = "block";
+
+        // Espera 1,5 segundos para o usuário ver a mensagem verde e depois redireciona
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1500);
+
+      } else {
+        // Se o backend retornar algum erro controlado
+        document.getElementById("errorMsg").style.display = "block";
+        alert("Erro ao cadastrar: " + (data.message || "Verifique os dados."));
+      }
+
+    } catch (error) {
+      // Se o servidor backend estiver desligado ou inacessível
+      console.error("Erro na requisição:", error);
+      document.getElementById("errorMsg").style.display = "block";
+      alert("Não foi possível conectar ao servidor backend.");
+    }
+  });
+</script>
+  </body>
+</html>

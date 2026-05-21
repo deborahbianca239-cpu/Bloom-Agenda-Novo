@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bloom Agenda</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <h2>Bloom Agenda</h2>
+      <p class="subtitle">
+        Bem-vindo de volta! Faça login para acessar sua agenda.
+      </p>
+      <form id="loginForm">
+        <div class="input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" placeholder="Email" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" placeholder="Senha" required />
+        </div>
+        <button type="submit" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> Entrar
+        </button>
+        <div id="errorMsg" class="error">Usuário ou senha inválidos!</div>
+        <div id="successMsg" class="success">
+          Login realizado com sucesso! Redirecionando...
+        </div>
+      </form>
+      <div class="links">
+  <a href="#" class="forgot-link" onclick="esqueciSenha()">
+    <i class="fas fa-question-circle"></i> Esqueceu a senha?
+  </a>
+  |
+  <a href="#" class="signup-link" onclick="cadastrar()">
+    <i class="fas fa-user-plus"></i> Cadastre-se
+  </a>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const supabaseUrl = "https://wkxjablvpgfbulcqsmlr.supabase.co";
+  const supabaseKey = "sb_publishable_q45LEs1VyGnLFmItMJAwPQ_nUzlltc_";
+
+  const { createClient } = supabase;
+  const client = createClient(supabaseUrl, supabaseKey);
+
+  const form = document.getElementById("loginForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await client.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert("Erro: " + error.message);
+    } else {
+      window.location.href = "home.html";
+    }
+  });
+  
+  function cadastrar() {
+    alert("Cadastro simples funcionando");
+  }
+
+  function esqueciSenha() {
+    alert("Recuperação de senha funcionando");
+  }
+
+</script>
+  </body>
+</html>
