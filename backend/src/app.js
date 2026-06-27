@@ -33,6 +33,12 @@ app.use((req, res, next) => {
 // Arquivos enviados (futuro: avatares, anexos).
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
+// Respostas da API nunca são cacheadas (evita 304 servindo dados antigos).
+app.use("/api", (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 // API
 app.use("/api", routes);
 
