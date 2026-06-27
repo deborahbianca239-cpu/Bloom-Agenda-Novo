@@ -6,11 +6,16 @@ frontend estático + API Express rodando como **função serverless** em `/api`.
 ```
 Bloom-Agenda/            ← raiz do projeto na Vercel
 ├── api/index.js         ← função serverless (carrega o Express de backend/src)
-├── backend/src/         ← código da API (reaproveitado)
-├── html/ css/ js/       ← frontend estático
+├── backend/src/         ← código da API + serve o frontend (express.static)
+├── html/ css/ js/       ← frontend (empacotado na função via includeFiles)
 ├── package.json         ← dependências instaladas pela Vercel
-└── vercel.json          ← roteia /api → função; resto → estático
+└── vercel.json          ← roteia TODAS as requisições para a função Express
 ```
+
+> O Express serve tanto a API (`/api/*`) quanto o frontend (`/`, `/html`,
+> `/css`, `/js`). Os arquivos estáticos são embutidos na função pelo
+> `includeFiles` do `vercel.json`. Isso evita os 404 de roteamento que
+> acontecem quando se tenta separar estático e função manualmente.
 
 ## 1. Banco de dados (Supabase)
 
