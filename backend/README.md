@@ -343,6 +343,6 @@ Resposta
 
 # 👨‍💻 Desenvolvido por
 
-** Déborah Farias **
+**Henrique Cardoso Silva**
 
 Projeto desenvolvido para a aplicação **Bloom Agenda**.

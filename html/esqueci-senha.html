@@ -20,49 +20,110 @@
         <i class="fas fa-calendar-alt"></i>
       </div>
       <h2>Bloom Agenda</h2>
-      <p class="subtitle">
-        Recupere sua senha. Informe seu e-mail e o código de verificação.
+      <p class="subtitle" id="subtitle">
+        Informe seu e-mail e enviaremos um link para redefinir sua senha.
       </p>
+
+      <!-- Etapa 1: solicitar link por e-mail -->
       <form id="forgotForm">
         <div class="input-group">
           <i class="fas fa-envelope"></i>
           <input type="email" id="email" placeholder="E-mail" required />
         </div>
+        <button type="submit" class="login-btn">
+          <i class="fas fa-paper-plane"></i> Enviar link
+        </button>
+      </form>
+
+      <!-- Etapa 2: redefinir senha (quando há token na URL) -->
+      <form id="resetForm" style="display: none">
         <div class="input-group">
-          <i class="fas fa-key"></i>
-          <input type="text" id="codigo" placeholder="Código de verificação" required />
+          <i class="fas fa-lock"></i>
+          <input
+            type="password"
+            id="novaSenha"
+            placeholder="Nova senha (mín. 8 caracteres)"
+            required
+          />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input
+            type="password"
+            id="confirmarSenha"
+            placeholder="Confirmar nova senha"
+            required
+          />
         </div>
         <button type="submit" class="login-btn">
-          <i class="fas fa-check-circle"></i> Verificar Código
+          <i class="fas fa-check-circle"></i> Redefinir senha
         </button>
-        <div id="errorMsg" class="error">Código inválido ou e-mail não encontrado!</div>
-        <div id="successMsg" class="success">
-          Código verificado! Redirecionando...
-        </div>
       </form>
+
+      <div id="errorMsg" class="error">Não foi possível concluir. Tente novamente!</div>
+      <div id="successMsg" class="success">Tudo certo!</div>
       <div class="links">
         <a href="index.html" class="back-link">
           <i class="fas fa-arrow-left"></i> Voltar ao login
         </a>
       </div>
 
+    <script src="../js/api.js"></script>
     <script>
-      const form = document.getElementById("forgotForm");
+      const forgotForm = document.getElementById("forgotForm");
+      const resetForm = document.getElementById("resetForm");
+      const subtitle = document.getElementById("subtitle");
+      const errorMsg = document.getElementById("errorMsg");
+      const successMsg = document.getElementById("successMsg");
 
-      form.addEventListener("submit", async (e) => {
+      const token = new URLSearchParams(location.search).get("token");
+
+      function showError(msg) {
+        successMsg.style.display = "none";
+        errorMsg.textContent = msg;
+        errorMsg.style.display = "block";
+      }
+      function showSuccess(msg) {
+        errorMsg.style.display = "none";
+        successMsg.textContent = msg;
+        successMsg.style.display = "block";
+      }
+
+      // Se a URL traz um token, mostra a etapa de redefinição.
+      if (token) {
+        forgotForm.style.display = "none";
+        resetForm.style.display = "block";
+        subtitle.textContent = "Defina sua nova senha de acesso.";
+      }
+
+      // Etapa 1 — solicitar o link
+      forgotForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        try {
+          const data = await BloomAPI.auth.forgotPassword(email);
+          showSuccess(data.message || "Se o e-mail existir, enviaremos as instruções.");
+        } catch (err) {
+          showError(err.message || "Erro ao solicitar recuperação.");
+        }
+      });
 
-        const email = document.getElementById("email").value;
-        const codigo = document.getElementById("codigo").value;
+      // Etapa 2 — redefinir a senha
+      resetForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const novaSenha = document.getElementById("novaSenha").value;
+        const confirmar = document.getElementById("confirmarSenha").value;
 
-        // Simulação de verificação - substituir por integração real
-        document.getElementById("errorMsg").style.display = "none";
-        document.getElementById("successMsg").style.display = "block";
+        if (novaSenha.length < 8) return showError("A senha deve ter no mínimo 8 caracteres.");
+        if (novaSenha !== confirmar) return showError("As senhas não coincidem.");
 
-        setTimeout(() => {
-          alert("Funcionalidade de recuperação de senha em desenvolvimento.");
-          document.getElementById("successMsg").style.display = "none";
-        }, 1500);
+        try {
+          await BloomAPI.auth.resetPassword(token, novaSenha);
+          showSuccess("Senha redefinida! Redirecionando para o login...");
+          setTimeout(() => (window.location.href = "index.html"), 1500);
+        } catch (err) {
+          showError(err.message || "Token inválido ou expirado.");
+        }
       });
     </script>
   </body>

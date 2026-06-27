@@ -50,54 +50,42 @@
         </a>
       </div>
 
+   <script src="../js/api.js"></script>
    <script>
-  // Captura o formulário usando o ID correto do seu HTML
   const form = document.getElementById("signupForm");
+  const errorMsg = document.getElementById("errorMsg");
+  const successMsg = document.getElementById("successMsg");
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Impede a página de recarregar
+    e.preventDefault();
 
-    // Pega os valores digitados nos inputs
-    const nome = document.getElementById("nome").value;
-    const email = document.getElementById("email").value;
+    const nome = document.getElementById("nome").value.trim();
+    const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value;
 
-    // Reseta as mensagens visuais da tela antes de tentar enviar
-    document.getElementById("errorMsg").style.display = "none";
-    document.getElementById("successMsg").style.display = "none";
+    errorMsg.style.display = "none";
+    successMsg.style.display = "none";
+
+    if (senha.length < 8) {
+      errorMsg.textContent = "A senha deve ter no mínimo 8 caracteres.";
+      errorMsg.style.display = "block";
+      return;
+    }
 
     try {
-      // Faz a requisição real para o seu backend na porta correta (3006)
-      const response = await fetch("http://localhost:3006/cadastro", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ nome, email, senha }),
-      });
+      // Cadastra e já autentica (o backend retorna token).
+      const data = await BloomAPI.auth.register({ nome, email, senha });
+      BloomAPI.setToken(data.token);
+      BloomAPI.setUser(data.user);
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Mostra a caixinha verde de sucesso estilizada que você já tem na tela
-        document.getElementById("successMsg").style.display = "block";
-
-        // Espera 1,5 segundos para o usuário ver a mensagem verde e depois redireciona
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1500);
-
-      } else {
-        // Se o backend retornar algum erro controlado
-        document.getElementById("errorMsg").style.display = "block";
-        alert("Erro ao cadastrar: " + (data.message || "Verifique os dados."));
-      }
-
+      successMsg.style.display = "block";
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 1200);
     } catch (error) {
-      // Se o servidor backend estiver desligado ou inacessível
-      console.error("Erro na requisição:", error);
-      document.getElementById("errorMsg").style.display = "block";
-      alert("Não foi possível conectar ao servidor backend.");
+      errorMsg.textContent =
+        error.message || "Erro ao cadastrar. Tente novamente!";
+      errorMsg.style.display = "block";
     }
   });
 </script>

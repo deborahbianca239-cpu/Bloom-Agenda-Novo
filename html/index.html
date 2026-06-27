@@ -158,13 +158,6 @@
           Entrar
         </button>
       </form>
-
-      <div class="links">
-        <a href="esqueci-senha.html">
-          <i class="fas fa-question-circle"></i>
-          Esqueceu a senha?
-        </a>
-        |
         <a href="cadastro.html">
           <i class="fas fa-user-plus"></i>
           Cadastre-se
@@ -172,38 +165,26 @@
       </div>
     </div>
 
+    <script src="../js/api.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      // Já autenticado? Vai direto para a home.
+      if (BloomAPI.isAuthenticated()) window.location.href = "home.html";
 
-    const email = document.getElementById("username").value;
-    const senha = document.getElementById("password").value;
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost:3006/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, senha }),
+        const email = document.getElementById("username").value.trim();
+        const senha = document.getElementById("password").value;
+
+        try {
+          const data = await BloomAPI.auth.login({ email, senha });
+          BloomAPI.setToken(data.token);
+          BloomAPI.setUser(data.user);
+          window.location.href = "home.html";
+        } catch (error) {
+          alert(error.message || "Erro ao conectar com o servidor");
+        }
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        localStorage.setItem("usuario", JSON.stringify(data.usuario));
-        alert(data.message);
-        window.location.href = "home.html";
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro ao conectar com o servidor");
-    }
-  });
-});
     </script>
   </body>
 </html>

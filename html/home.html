@@ -20,269 +20,625 @@
       href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="../css/style.css"/>
+    <link rel="stylesheet" href="../css/style.css" />
   </head>
-  <body>
-    <div class="container">
-      <div class="main-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="text-center flex-grow-1 mb-0">🌸 Bloom Agenda</h2>
-          <button class="btn logout-btn btn-sm" onclick="logout()">
-            <i class="bi bi-box-arrow-right"></i>
+  <body class="bloom-home">
+    <!-- ============ HEADER ============ -->
+    <header class="bloom-header">
+      <div class="bloom-header-inner">
+        <div class="bloom-logo">
+          <span class="flower">🌸</span><span>Bloom Agenda</span>
+        </div>
+
+        <div class="bloom-greeting">
+          <div class="greet" id="greeting">Olá</div>
+          <div class="date" id="fullDate"></div>
+        </div>
+
+        <div class="bloom-profile dropdown">
+          <button
+            class="btn dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <span class="uname" id="userName">Visitante</span>
+            <span class="bloom-avatar" id="userAvatar">V</span>
           </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <h6 class="dropdown-header" id="userEmail">conta</h6>
+            </li>
+            <li>
+              <a class="dropdown-item" href="configuracoes.html">
+                <i class="bi bi-gear me-2"></i>Configurações
+              </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item text-danger" href="#" onclick="logout(event)">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
         </div>
+      </div>
+    </header>
 
-        <input
-          type="text"
-          id="calendario"
-          class="form-control mb-3"
-          placeholder="Data opcional"
-        />
-
-        <div class="row mb-4 form-row">
-          <div class="col-md">
-            <select id="diaSemana" class="form-select">
-              <option value="segunda">Segunda-feira</option>
-              <option value="terca">Terça-feira</option>
-              <option value="quarta">Quarta-feira</option>
-              <option value="quinta">Quinta-feira</option>
-              <option value="sexta">Sexta-feira</option>
-              <option value="sabado">Sábado</option>
-              <option value="domingo">Domingo</option>
-            </select>
-          </div>
-          <div class="col-md">
-            <input type="time" id="horario" class="form-control" />
-          </div>
-          <div class="col-md">
-            <input
-              type="text"
-              id="tarefa"
-              class="form-control"
-              placeholder="Digite a tarefa..."
-            />
-          </div>
-          <div class="col-md-auto">
-            <button id="btnAdicionar" class="btn w-100 h-100">
-              + Adicionar
-            </button>
-          </div>
+    <!-- ============ MAIN ============ -->
+    <main class="bloom-main">
+      <!-- Toolbar -->
+      <div class="bloom-toolbar">
+        <div class="bloom-search">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Pesquisar tarefas..."
+            autocomplete="off"
+          />
         </div>
+        <button class="btn btn-bloom" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="novaTarefa()">
+          <i class="bi bi-plus-lg me-1"></i> Nova tarefa
+        </button>
+      </div>
 
-        <div id="dias">
-          <div class="day-section">
-            <h5>Segunda-feira</h5>
-            <div id="segunda"></div>
+      <!-- Filters -->
+      <div class="bloom-filters" id="filters">
+        <button class="bloom-chip active" data-filter="todas">Todas</button>
+        <button class="bloom-chip" data-filter="hoje">Hoje</button>
+        <button class="bloom-chip" data-filter="pendentes">Pendentes</button>
+        <button class="bloom-chip" data-filter="concluidas">Concluídas</button>
+        <button class="bloom-chip" data-filter="alta">Alta prioridade</button>
+      </div>
+
+      <div class="bloom-grid">
+        <!-- ===== Left column: dashboard cards ===== -->
+        <section>
+          <div class="bloom-card" id="cardHoje">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-sun text-warning"></i> Hoje <span class="count" id="countHoje">0</span></h3>
+              <button class="btn btn-bloom-soft d-none" id="verTodasHoje" onclick="verTodas('hoje')">Ver todas</button>
+            </div>
+            <div id="listHoje"></div>
           </div>
-          <div class="day-section">
-            <h5>Terça-feira</h5>
-            <div id="terca"></div>
+
+          <div class="bloom-card" id="cardAmanha">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-sunrise text-warning"></i> Amanhã <span class="count" id="countAmanha">0</span></h3>
+              <button class="btn btn-bloom-soft d-none" id="verTodasAmanha" onclick="verTodas('amanha')">Ver todas</button>
+            </div>
+            <div id="listAmanha"></div>
           </div>
-          <div class="day-section">
-            <h5>Quarta-feira</h5>
-            <div id="quarta"></div>
+
+          <div class="bloom-card" id="cardProximos">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-calendar3"></i> Próximos dias <span class="count" id="countProximos">0</span></h3>
+              <button class="btn btn-bloom-soft d-none" id="verTodasProximos" onclick="verTodas('proximos')">Ver todas</button>
+            </div>
+            <div id="listProximos"></div>
           </div>
-          <div class="day-section">
-            <h5>Quinta-feira</h5>
-            <div id="quinta"></div>
+
+          <!-- Lista única exibida quando há filtro, busca ou dia selecionado -->
+          <div class="bloom-card d-none" id="cardResultados">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-funnel"></i> <span id="resultadosTitulo">Resultados</span> <span class="count" id="countResultados">0</span></h3>
+            </div>
+            <div id="listResultados"></div>
           </div>
-          <div class="day-section">
-            <h5>Sexta-feira</h5>
-            <div id="sexta"></div>
+        </section>
+
+        <!-- ===== Right column: stats + calendar ===== -->
+        <aside>
+          <div class="bloom-card">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-graph-up-arrow text-success"></i> Estatísticas</h3>
+            </div>
+            <div class="stats-row">
+              <div class="stat-box">
+                <div class="num" id="statTotal">0</div>
+                <div class="lbl">Total</div>
+              </div>
+              <div class="stat-box">
+                <div class="num" id="statDone">0</div>
+                <div class="lbl">Concluídas</div>
+              </div>
+              <div class="stat-box">
+                <div class="num" id="statPending">0</div>
+                <div class="lbl">Pendentes</div>
+              </div>
+            </div>
+            <div class="progress-ring-wrap">
+              <svg class="progress-ring" width="74" height="74" viewBox="0 0 74 74">
+                <circle cx="37" cy="37" r="31" fill="none" stroke="#ffe4e1" stroke-width="8" />
+                <circle
+                  id="ringProgress"
+                  cx="37" cy="37" r="31" fill="none"
+                  stroke="#ff6b9d" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="194.8" stroke-dashoffset="194.8"
+                  transform="rotate(-90 37 37)"
+                  style="transition: stroke-dashoffset 0.6s ease;"
+                />
+                <text id="ringText" x="37" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="#c44569">0%</text>
+              </svg>
+              <div class="progress-ring-text">
+                <strong id="ringLabel">0%</strong><br />tarefas concluídas
+              </div>
+            </div>
           </div>
-          <div class="day-section">
-            <h5>Sábado</h5>
-            <div id="sabado"></div>
+
+          <div class="bloom-card">
+            <div class="bloom-card-head">
+              <h3><i class="bi bi-calendar-heart text-danger"></i> Calendário</h3>
+              <button class="btn btn-bloom-soft d-none" id="limparData" onclick="limparFiltroData()">Limpar</button>
+            </div>
+            <input type="text" id="calendario" style="display:none" />
+            <div id="diaSelecionadoInfo" class="bloom-empty d-none"></div>
           </div>
-          <div class="day-section">
-            <h5>Domingo</h5>
-            <div id="domingo"></div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="bloom-footer">
+      <div class="f-logo">🌸 Bloom Agenda</div>
+      <div class="f-tag">Sua agenda pessoal para organizar melhor o seu dia.</div>
+      <div class="f-copy">© 2026</div>
+    </footer>
+
+    <!-- ============ MODAL: Nova / Editar tarefa ============ -->
+    <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bloom-modal">
+          <div class="modal-header">
+            <h5 class="modal-title" id="taskModalTitle">Nova tarefa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
           </div>
+          <form id="taskForm">
+            <div class="modal-body">
+              <input type="hidden" id="taskId" />
+              <div class="mb-3">
+                <label class="form-label" for="taskTitle">Título</label>
+                <input type="text" class="form-control" id="taskTitle" placeholder="Ex: Reunião de equipe" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="taskDesc">Descrição</label>
+                <textarea class="form-control" id="taskDesc" rows="2" placeholder="Detalhes (opcional)"></textarea>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label" for="taskDate">Data</label>
+                  <input type="date" class="form-control" id="taskDate" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label" for="taskTime">Horário</label>
+                  <input type="time" class="form-control" id="taskTime" />
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label" for="taskPrio">Prioridade</label>
+                  <select class="form-select" id="taskPrio">
+                    <option value="alta">🔴 Alta</option>
+                    <option value="media" selected>🟠 Média</option>
+                    <option value="baixa">🟢 Baixa</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label" for="taskCat">Categoria</label>
+                  <select class="form-select" id="taskCat">
+                    <option value="Pessoal">Pessoal</option>
+                    <option value="Trabalho">Trabalho</option>
+                    <option value="Estudos">Estudos</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Compras">Compras</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Outros">Outros</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-bloom-soft" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-bloom"><i class="bi bi-check2 me-1"></i>Salvar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
+    <!-- ============ MODAL: Ver todas ============ -->
+    <div class="modal fade" id="listModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content bloom-modal">
+          <div class="modal-header">
+            <h5 class="modal-title" id="listModalTitle">Tarefas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body" id="listModalBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/pt.js"></script>
+    <script src="../js/api.js"></script>
     <script>
-      // 1. Resgata o usuário salvo na memória pelo login
-      const usuarioLogado = JSON.parse(localStorage.getItem("usuario"));
-
-      // Segurança: se o usuário tentar burlar ou acessar sem logar, volta pra index
-      if (!usuarioLogado || !usuarioLogado.id) {
-        alert("Por favor, faça login primeiro.");
+      /* ===================== Guarda de sessão ===================== */
+      if (!BloomAPI.isAuthenticated()) {
         window.location.href = "index.html";
       }
 
-      flatpickr("#calendario", { locale: "pt" });
-
-      // Auto set current day
-      const now = new Date();
-      const days = {
-        0: "domingo",
-        1: "segunda",
-        2: "terca",
-        3: "quarta",
-        4: "quinta",
-        5: "sexta",
-        6: "sabado",
+      /* ===================== Mapeamento de prioridade ===================== */
+      const PRIO = {
+        alta: { label: "Alta", dot: "🔴", cls: "alta" },
+        media: { label: "Média", dot: "🟠", cls: "media" },
+        baixa: { label: "Baixa", dot: "🟢", cls: "baixa" },
       };
-      document.getElementById("diaSemana").value = days[now.getDay()];
+      const TO_API_PRIO = { alta: "HIGH", media: "MEDIUM", baixa: "LOW" };
+      const FROM_API_PRIO = { HIGH: "alta", MEDIUM: "media", LOW: "baixa" };
 
-      document
-        .getElementById("btnAdicionar")
-        .addEventListener("click", adicionarTarefa);
+      const usuario = BloomAPI.getUser();
 
-      // ADICIONAR TAREFA NO SEU BACKEND LOCAL (PORTA 3006)
-      async function adicionarTarefa() {
-        const dia = document.getElementById("diaSemana").value;
-        const horario = document.getElementById("horario").value;
-        const tarefa = document.getElementById("tarefa").value.trim();
+      /* Converte a tarefa da API para o formato interno usado no render. */
+      function normalize(t) {
+        return {
+          id: t.id,
+          title: t.title,
+          desc: t.description || "",
+          date: t.task_date,
+          time: t.task_time || "",
+          prio: FROM_API_PRIO[t.priority] || "media",
+          cat: t.category || "",
+          done: !!t.completed,
+        };
+      }
 
-        if (!tarefa) {
-          alert("Digite uma tarefa!");
-          return;
-        }
+      let tarefas = [];
+      let filtroAtivo = "todas";
+      let termoBusca = "";
+      let dataSelecionada = null; // YYYY-MM-DD ou null
+      let fp = null;
 
+      /* ===================== Util ===================== */
+      function hojeStr() {
+        return toKey(new Date());
+      }
+      function toKey(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dia = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${dia}`;
+      }
+      function addDias(str, n) {
+        const d = new Date(str + "T00:00:00");
+        d.setDate(d.getDate() + n);
+        return toKey(d);
+      }
+      function escapeHtml(s) {
+        return (s || "").replace(/[&<>"']/g, (c) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+        );
+      }
+      function findTask(id) {
+        return tarefas.find((t) => String(t.id) === String(id));
+      }
+
+      /* ===================== Carregamento (API) ===================== */
+      async function reload() {
         try {
-          const response = await fetch("http://localhost:3006/tarefas", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              usuario_id: usuarioLogado.id, // Vincula a tarefa ao ID do usuário logado
-              dia,
-              horario,
-              tarefa
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            document.getElementById("tarefa").value = "";
-            document.getElementById("horario").value = "";
-            carregarTarefas();
-          } else {
-            alert("Erro ao salvar tarefa no servidor.");
-          }
-        } catch (error) {
-          console.error("Erro na conexão:", error);
-          alert("Não foi possível conectar ao servidor backend.");
+          const data = await BloomAPI.tasks.list();
+          tarefas = (data.tasks || []).map(normalize);
+          render();
+        } catch (err) {
+          if (err.status === 401) return; // sessão encerrada → redireciona via api.js
+          console.error(err);
+          alert(err.message || "Erro ao carregar tarefas.");
         }
       }
 
-      // CARREGAR TAREFAS DO BACKEND LOCAL (PORTA 3006)
-      async function carregarTarefas() {
-        try {
-          const response = await fetch(`http://localhost:3006/tarefas/${usuarioLogado.id}`);
-          const resData = await response.json();
+      /* ===================== Header dinâmico ===================== */
+      function initHeader() {
+        const agora = new Date();
+        const h = agora.getHours();
+        let saud = "Boa noite";
+        if (h >= 5 && h < 12) saud = "Bom dia";
+        else if (h >= 12 && h < 18) saud = "Boa tarde";
 
-          if (!resData.success) {
-            console.error("Erro na busca:", resData.message);
-            return;
-          }
+        const nome = usuario?.name ? usuario.name.split(" ")[0] : "";
+        document.getElementById("greeting").textContent = nome ? `${saud}, ${nome}` : saud;
 
-          const data = resData.data;
+        const dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        document.getElementById("fullDate").textContent =
+          `${dias[agora.getDay()]}, ${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}`;
 
-          // Organiza por horário
-          data.sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
-          
-          // Limpa todas as colunas visuais
-          [
-            "segunda",
-            "terca",
-            "quarta",
-            "quinta",
-            "sexta",
-            "sabado",
-            "domingo",
-          ].forEach((d) => (document.getElementById(d).innerHTML = ""));
+        const display = usuario?.name || "Visitante";
+        document.getElementById("userName").textContent = display;
+        document.getElementById("userAvatar").textContent = display.charAt(0).toUpperCase();
+        document.getElementById("userEmail").textContent = usuario?.email || "Conta";
+      }
 
-          // Renderiza as tarefas vindas do seu banco MySQL
-          data.forEach((t) => {
-            const div = document.getElementById(t.dia);
-            if (div) {
-              div.innerHTML += `
-              <div class="task-item ${t.completed ? "completed" : ""}" data-id="${t.id}">
-                <input type="checkbox" ${t.completed ? "checked" : ""} onchange="toggleComplete('${t.id}', this.checked)">
-                <div>
-                  <strong>${t.horario || "--:--"}</strong> - <span class="task-text">${t.tarefa}</span>
-                </div>
-                <div class="task-actions">
-                  <button class="btn btn-sm btn-warning" onclick="editTask('${t.id}', '${t.tarefa.replace(/'/g, "\\'")}')" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteTask('${t.id}')" title="Deletar">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
+      /* ===================== Render de tarefa ===================== */
+      function taskHTML(t) {
+        const p = PRIO[t.prio] || PRIO.media;
+        const hora = t.time ? t.time : "--:--";
+        return `
+          <div class="task-item ${t.done ? "completed" : ""}" data-prio="${t.prio}" data-id="${t.id}">
+            <button class="task-check" title="Concluir" onclick="toggleDone(${t.id})">
+              <i class="bi bi-check-lg"></i>
+            </button>
+            <span class="task-time">${hora}</span>
+            <div class="task-body" onclick="editarTarefa(${t.id})" title="Editar tarefa">
+              <div class="task-title">${escapeHtml(t.title)}</div>
+              <div class="task-meta">
+                <span class="prio-badge ${p.cls}">${p.dot} ${p.label}</span>
+                ${t.cat ? `<span class="cat-badge">${escapeHtml(t.cat)}</span>` : ""}
+                ${t.desc ? `<span><i class="bi bi-card-text"></i> ${escapeHtml(t.desc).slice(0, 40)}</span>` : ""}
               </div>
-            `;
-            }
-          });
-        } catch (error) {
-          console.error("Erro ao carregar tarefas:", error);
+            </div>
+            <div class="task-actions">
+              <button class="btn" title="Editar" onclick="editarTarefa(${t.id})"><i class="bi bi-pencil"></i></button>
+              <button class="btn del" title="Excluir" onclick="excluirTarefa(${t.id})"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>`;
+      }
+
+      function emptyHTML(msg) {
+        return `<div class="bloom-empty"><span class="emoji">🌷</span>${msg}</div>`;
+      }
+
+      function ordenar(arr) {
+        return arr.slice().sort((a, b) => {
+          if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+          return (a.time || "99:99").localeCompare(b.time || "99:99");
+        });
+      }
+
+      /* ===================== Filtros ===================== */
+      function passaFiltro(t) {
+        if (termoBusca) {
+          const blob = `${t.title} ${t.desc || ""} ${t.cat || ""}`.toLowerCase();
+          if (!blob.includes(termoBusca)) return false;
+        }
+        if (dataSelecionada && t.date !== dataSelecionada) return false;
+        switch (filtroAtivo) {
+          case "hoje": return !t.done && t.date === hojeStr();
+          case "pendentes": return !t.done;
+          case "concluidas": return t.done; // único lugar que mostra concluídas
+          case "alta": return !t.done && t.prio === "alta";
+          default: return !t.done; // "Todas" exibe apenas as não concluídas
         }
       }
 
-      // ATUALIZAR STATUS DE CONCLUÍDO (CHECKBOX)
-      async function toggleComplete(id, completed) {
+      /* ===================== Render principal ===================== */
+      const LIMITE = 3;
+      let grupos = {};
+
+      // Painel (3 cartões por data) só quando não há filtro/busca/dia ativos.
+      function isDashboardMode() {
+        return filtroAtivo === "todas" && !termoBusca && !dataSelecionada;
+      }
+      const labelFiltro = {
+        todas: "Todas",
+        hoje: "Hoje",
+        pendentes: "Pendentes",
+        concluidas: "Concluídas",
+        alta: "Alta prioridade",
+      };
+
+      function render() {
+        const visiveis = ordenar(tarefas.filter(passaFiltro));
+        const hoje = hojeStr();
+        const amanha = addDias(hoje, 1);
+
+        const cards = ["cardHoje", "cardAmanha", "cardProximos"];
+        const resultado = document.getElementById("cardResultados");
+
+        if (isDashboardMode()) {
+          cards.forEach((id) => document.getElementById(id).classList.remove("d-none"));
+          resultado.classList.add("d-none");
+
+          // "Hoje" inclui também as atrasadas (data <= hoje) para nada ficar oculto.
+          const grpHoje = visiveis.filter((t) => t.date <= hoje);
+          const grpAmanha = visiveis.filter((t) => t.date === amanha);
+          const grpProximos = visiveis.filter((t) => t.date > amanha);
+
+          renderGrupo("listHoje", "countHoje", "verTodasHoje", grpHoje, "Nenhuma tarefa para hoje. Aproveite! 🌸");
+          renderGrupo("listAmanha", "countAmanha", "verTodasAmanha", grpAmanha, "Nada agendado para amanhã.");
+          renderGrupo("listProximos", "countProximos", "verTodasProximos", grpProximos, "Sem tarefas futuras por enquanto.");
+
+          grupos = { hoje: grpHoje, amanha: grpAmanha, proximos: grpProximos };
+        } else {
+          cards.forEach((id) => document.getElementById(id).classList.add("d-none"));
+          resultado.classList.remove("d-none");
+
+          let titulo = labelFiltro[filtroAtivo] || "Resultados";
+          if (dataSelecionada) titulo = "Dia " + dataSelecionada.split("-").reverse().join("/");
+          if (termoBusca) titulo = `Busca: "${termoBusca}"`;
+
+          document.getElementById("resultadosTitulo").textContent = titulo;
+          document.getElementById("countResultados").textContent = visiveis.length;
+          document.getElementById("listResultados").innerHTML = visiveis.length
+            ? visiveis.map(taskHTML).join("")
+            : emptyHTML("Nenhuma tarefa encontrada.");
+        }
+
+        atualizarStats();
+        if (fp) fp.redraw();
+
+        // Atualiza modal "ver todas" se estiver aberto.
+        const lm = document.getElementById("listModal");
+        if (lm.classList.contains("show") && grupoAberto) verTodas(grupoAberto, true);
+      }
+
+      function renderGrupo(listId, countId, btnId, arr, vazioMsg) {
+        const el = document.getElementById(listId);
+        document.getElementById(countId).textContent = arr.length;
+        const btn = document.getElementById(btnId);
+        if (arr.length > LIMITE) btn.classList.remove("d-none");
+        else btn.classList.add("d-none");
+
+        el.innerHTML = arr.length
+          ? arr.slice(0, LIMITE).map(taskHTML).join("")
+          : emptyHTML(vazioMsg);
+      }
+
+      /* ===================== Estatísticas ===================== */
+      function atualizarStats() {
+        const total = tarefas.length;
+        const done = tarefas.filter((t) => t.done).length;
+        const pend = total - done;
+        document.getElementById("statTotal").textContent = total;
+        document.getElementById("statDone").textContent = done;
+        document.getElementById("statPending").textContent = pend;
+
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const circ = 2 * Math.PI * 31;
+        document.getElementById("ringProgress").style.strokeDashoffset = circ - (circ * pct) / 100;
+        document.getElementById("ringText").textContent = pct + "%";
+        document.getElementById("ringLabel").textContent = pct + "%";
+      }
+
+      /* ===================== Ações (API) ===================== */
+      async function toggleDone(id) {
+        const t = findTask(id);
+        if (!t) return;
         try {
-          const response = await fetch(`http://localhost:3006/tarefas/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ completed })
-          });
-          const data = await response.json();
-          if (data.success) carregarTarefas();
-        } catch (error) {
-          console.error(error);
+          if (t.done) await BloomAPI.tasks.uncomplete(id);
+          else await BloomAPI.tasks.complete(id);
+          await reload();
+        } catch (err) {
+          alert(err.message || "Erro ao atualizar tarefa.");
         }
       }
 
-      // EDITAR TEXTO DA TAREFA
-      async function editTask(id, currentText) {
-        const newText = prompt("Editar tarefa:", currentText);
-        if (newText !== null && newText.trim()) {
-          try {
-            const response = await fetch(`http://localhost:3006/tarefas/${id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tarefa: newText.trim() })
-            });
-            const data = await response.json();
-            if (data.success) carregarTarefas();
-          } catch (error) {
-            console.error(error);
-          }
+      async function excluirTarefa(id) {
+        if (!confirm("Excluir esta tarefa?")) return;
+        try {
+          await BloomAPI.tasks.remove(id);
+          await reload();
+        } catch (err) {
+          alert(err.message || "Erro ao excluir tarefa.");
         }
       }
 
-      // EXCLUIR TAREFA DO BANCO
-      async function deleteTask(id) {
-        if (confirm("Deletar tarefa?")) {
-          try {
-            const response = await fetch(`http://localhost:3006/tarefas/${id}`, {
-              method: "DELETE"
-            });
-            const data = await response.json();
-            if (data.success) carregarTarefas();
-          } catch (error) {
-            console.error(error);
-          }
-        }
+      const taskModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById("taskModal"));
+
+      function novaTarefa() {
+        document.getElementById("taskForm").reset();
+        document.getElementById("taskId").value = "";
+        document.getElementById("taskModalTitle").textContent = "Nova tarefa";
+        document.getElementById("taskDate").value = dataSelecionada || hojeStr();
+        document.getElementById("taskPrio").value = "media";
       }
 
-      // FAZER LOGOUT LIMPADOR
-      function logout() {
-        localStorage.removeItem("usuario");
+      function editarTarefa(id) {
+        const t = findTask(id);
+        if (!t) return;
+        document.getElementById("taskId").value = t.id;
+        document.getElementById("taskModalTitle").textContent = "Editar tarefa";
+        document.getElementById("taskTitle").value = t.title;
+        document.getElementById("taskDesc").value = t.desc || "";
+        document.getElementById("taskDate").value = t.date;
+        document.getElementById("taskTime").value = t.time || "";
+        document.getElementById("taskPrio").value = t.prio;
+        document.getElementById("taskCat").value = t.cat || "Pessoal";
+        taskModal().show();
+      }
+
+      document.getElementById("taskForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("taskId").value;
+        const payload = {
+          title: document.getElementById("taskTitle").value.trim(),
+          description: document.getElementById("taskDesc").value.trim(),
+          task_date: document.getElementById("taskDate").value,
+          task_time: document.getElementById("taskTime").value || null,
+          priority: TO_API_PRIO[document.getElementById("taskPrio").value] || "MEDIUM",
+          category: document.getElementById("taskCat").value,
+        };
+        if (!payload.title || !payload.task_date) return;
+
+        try {
+          if (id) await BloomAPI.tasks.update(id, payload);
+          else await BloomAPI.tasks.create(payload);
+          taskModal().hide();
+          await reload();
+        } catch (err) {
+          alert(err.message || "Erro ao salvar tarefa.");
+        }
+      });
+
+      /* ===================== Ver todas ===================== */
+      let grupoAberto = null;
+      const titulosGrupo = { hoje: "Tarefas de Hoje", amanha: "Tarefas de Amanhã", proximos: "Próximos dias" };
+
+      function verTodas(grupo, keepOpen) {
+        grupoAberto = grupo;
+        const arr = grupos[grupo] || [];
+        document.getElementById("listModalTitle").textContent = titulosGrupo[grupo] || "Tarefas";
+        const body = document.getElementById("listModalBody");
+        body.innerHTML = arr.length ? arr.map(taskHTML).join("") : emptyHTML("Nenhuma tarefa aqui.");
+        if (!keepOpen) bootstrap.Modal.getOrCreateInstance(document.getElementById("listModal")).show();
+      }
+
+      /* ===================== Busca & filtros ===================== */
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        termoBusca = e.target.value.trim().toLowerCase();
+        render();
+      });
+
+      document.getElementById("filters").addEventListener("click", (e) => {
+        const chip = e.target.closest(".bloom-chip");
+        if (!chip) return;
+        document.querySelectorAll(".bloom-chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        filtroAtivo = chip.dataset.filter;
+        render();
+      });
+
+      /* ===================== Calendário ===================== */
+      function initCalendario() {
+        fp = flatpickr("#calendario", {
+          inline: true,
+          locale: "pt",
+          defaultDate: new Date(),
+          onChange: (sel, str) => {
+            dataSelecionada = str;
+            const info = document.getElementById("diaSelecionadoInfo");
+            const cont = tarefas.filter((t) => t.date === str).length;
+            info.classList.remove("d-none");
+            info.innerHTML = `Mostrando <strong>${cont}</strong> tarefa(s) de <strong>${str.split("-").reverse().join("/")}</strong>`;
+            document.getElementById("limparData").classList.remove("d-none");
+            render();
+          },
+          onDayCreate: (dObj, dStr, fpInst, dayElem) => {
+            const key = toKey(dayElem.dateObj);
+            if (tarefas.some((t) => t.date === key)) dayElem.classList.add("has-tasks");
+          },
+        });
+      }
+
+      function limparFiltroData() {
+        dataSelecionada = null;
+        document.getElementById("diaSelecionadoInfo").classList.add("d-none");
+        document.getElementById("limparData").classList.add("d-none");
+        render();
+      }
+
+      /* ===================== Conta ===================== */
+      function logout(e) {
+        if (e) e.preventDefault();
+        BloomAPI.clearSession();
         window.location.href = "index.html";
       }
 
-      // Executa automaticamente ao abrir a página
-      carregarTarefas();
+      /* ===================== Init ===================== */
+      initHeader();
+      initCalendario();
+      reload();
     </script>
   </body>
 </html>
