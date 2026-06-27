@@ -50,6 +50,12 @@ async function getProfile(userId) {
   return user;
 }
 
+async function updateName(userId, nome) {
+  const user = await userModel.updateName(userId, nome.trim());
+  if (!user) throw ApiError.notFound("Usuário não encontrado");
+  return user;
+}
+
 async function changePassword(userId, { senhaAtual, novaSenha }) {
   const user = await userModel.findByIdWithPassword(userId);
   if (!user) throw ApiError.notFound("Usuário não encontrado");
@@ -109,6 +115,7 @@ module.exports = {
   register,
   login,
   getProfile,
+  updateName,
   changePassword,
   forgotPassword,
   resetPassword,

@@ -27,6 +27,11 @@ const resetRules = [
   body("novaSenha").isLength({ min: 8 }).withMessage("A nova senha deve ter no mínimo 8 caracteres"),
 ];
 
+const updateNameRules = [
+  body("nome").trim().notEmpty().withMessage("Nome é obrigatório").bail()
+    .isLength({ max: 120 }).withMessage("Nome muito longo"),
+];
+
 const changePasswordRules = [
   body("senhaAtual").notEmpty().withMessage("Senha atual é obrigatória"),
   body("novaSenha").isLength({ min: 8 }).withMessage("A nova senha deve ter no mínimo 8 caracteres"),
@@ -53,6 +58,7 @@ module.exports = {
   loginRules,
   forgotRules,
   resetRules,
+  updateNameRules,
   changePasswordRules,
   taskRules,
 };

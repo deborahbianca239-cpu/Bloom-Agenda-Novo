@@ -98,6 +98,8 @@
         body: { senhaAtual, novaSenha },
       }),
     profile: () => request("/auth/profile"),
+    updateName: (nome) =>
+      request("/auth/profile", { method: "PUT", body: { nome } }),
   };
 
   /* ---------- Tasks ---------- */

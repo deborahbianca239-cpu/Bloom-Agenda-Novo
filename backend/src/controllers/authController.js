@@ -22,6 +22,11 @@ exports.profile = asyncHandler(async (req, res) => {
   res.json({ success: true, user });
 });
 
+exports.updateProfile = asyncHandler(async (req, res) => {
+  const user = await authService.updateName(req.user.id, req.body.nome);
+  res.json({ success: true, message: "Nome atualizado!", user });
+});
+
 exports.changePassword = asyncHandler(async (req, res) => {
   await authService.changePassword(req.user.id, req.body);
   res.json({ success: true, message: "Senha alterada com sucesso!" });

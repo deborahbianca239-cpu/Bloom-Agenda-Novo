@@ -211,17 +211,21 @@
         document.getElementById("accountView").style.display = "block";
       }
 
-      document.getElementById("accountEdit").addEventListener("submit", (e) => {
+      document.getElementById("accountEdit").addEventListener("submit", async (e) => {
         e.preventDefault();
         const novo = document.getElementById("editNome").value.trim();
         if (!novo) return;
 
-        // Atualização local (a persistência no backend será feita na próxima etapa).
-        usuario.name = novo;
-        BloomAPI.setUser(usuario);
-        preencher();
-        cancelarNome();
-        msg("accountMsg", "Nome atualizado neste dispositivo. 🌸", true);
+        try {
+          const data = await BloomAPI.auth.updateName(novo);
+          usuario = { ...usuario, ...data.user };
+          BloomAPI.setUser(usuario);
+          preencher();
+          cancelarNome();
+          msg("accountMsg", "Nome atualizado com sucesso! 🌸", true);
+        } catch (err) {
+          msg("accountMsg", err.message || "Erro ao atualizar o nome.", false);
+        }
       });
 
       /* ===================== Alterar senha ===================== */

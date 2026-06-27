@@ -39,10 +39,20 @@ async function updatePassword(id, passwordHash) {
   ]);
 }
 
+async function updateName(id, name) {
+  const { rows } = await query(
+    `UPDATE users SET name = $1 WHERE id = $2
+     RETURNING ${SAFE_COLUMNS}`,
+    [name, id]
+  );
+  return rows[0] || null;
+}
+
 module.exports = {
   create,
   findByEmail,
   findById,
   findByIdWithPassword,
   updatePassword,
+  updateName,
 };

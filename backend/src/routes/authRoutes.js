@@ -15,6 +15,7 @@ router.post("/reset-password", v.resetRules, validate, ctrl.resetPassword);
 
 // Protegidas
 router.get("/profile", authenticate, ctrl.profile);
+router.put("/profile", authenticate, v.updateNameRules, validate, ctrl.updateProfile);
 router.put("/change-password", authenticate, v.changePasswordRules, validate, ctrl.changePassword);
 
 module.exports = router;
