@@ -40,6 +40,9 @@ app.use("/api", routes);
 // Raiz do projeto (onde ficam html/, css/, js/). Em produção (Vercel) esses
 // arquivos são incluídos na função via "includeFiles" no vercel.json.
 // No Docker o frontend é servido pelo nginx, então estes mounts ficam ociosos.
+// Silencia o pedido automático do navegador (sem arquivo de ícone).
+app.get("/favicon.ico", (_req, res) => res.status(204).end());
+
 const ROOT = path.join(__dirname, "..", "..");
 app.use("/css", express.static(path.join(ROOT, "css")));
 app.use("/js", express.static(path.join(ROOT, "js")));
