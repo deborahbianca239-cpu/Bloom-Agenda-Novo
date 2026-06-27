@@ -21,6 +21,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#ff6b9d" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
   </head>
   <body class="bloom-home">
     <!-- ============ HEADER ============ -->
@@ -78,6 +83,9 @@
             autocomplete="off"
           />
         </div>
+        <button class="btn btn-bloom-soft d-none" data-pwa-install onclick="installPWA()" title="Instalar o app no seu dispositivo">
+          <i class="bi bi-download me-1"></i> Instalar app
+        </button>
         <button class="btn btn-bloom" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="novaTarefa()">
           <i class="bi bi-plus-lg me-1"></i> Nova tarefa
         </button>
@@ -264,6 +272,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/pt.js"></script>
     <script src="../js/api.js"></script>
+    <script src="../js/pwa.js"></script>
     <script>
       /* ===================== Guarda de sessão ===================== */
       if (!BloomAPI.isAuthenticated()) {

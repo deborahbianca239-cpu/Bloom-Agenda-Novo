@@ -17,6 +17,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#ff6b9d" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
   </head>
   <body class="bloom-home">
     <!-- ============ HEADER ============ -->
@@ -152,6 +157,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/api.js"></script>
+    <script src="../js/pwa.js"></script>
     <script>
       /* ===================== Guarda de sessão ===================== */
       if (!BloomAPI.isAuthenticated()) {

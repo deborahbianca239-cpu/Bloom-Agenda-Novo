@@ -18,6 +18,11 @@
 
     <link rel="stylesheet" href="../css/style.css" />
 
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#ff6b9d" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
     <style>
       * {
         margin: 0;
@@ -166,6 +171,7 @@
     </div>
 
     <script src="../js/api.js"></script>
+    <script src="../js/pwa.js"></script>
     <script>
       // Já autenticado? Vai direto para a home.
       if (BloomAPI.isAuthenticated()) window.location.href = "home.html";

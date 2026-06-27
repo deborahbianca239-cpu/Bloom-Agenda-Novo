@@ -1,0 +1,32 @@
+{
+  "name": "Bloom Agenda",
+  "short_name": "Bloom",
+  "description": "Sua agenda pessoal para organizar melhor o seu dia.",
+  "lang": "pt-BR",
+  "start_url": "/html/index.html",
+  "scope": "/html/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffe4e1",
+  "theme_color": "#ff6b9d",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
