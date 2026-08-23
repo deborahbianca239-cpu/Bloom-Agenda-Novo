@@ -2,6 +2,7 @@
 const { body } = require("express-validator");
 
 const PRIORITIES = ["HIGH", "MEDIUM", "LOW"];
+const THEMES = ["azul", "rosa", "branco", "amarelo", "preto", "daltonico"];
 
 const registerRules = [
   body("nome").trim().notEmpty().withMessage("Nome é obrigatório").bail()
@@ -32,6 +33,10 @@ const updateNameRules = [
     .isLength({ max: 120 }).withMessage("Nome muito longo"),
 ];
 
+const preferencesRules = [
+  body("theme").trim().isIn(THEMES).withMessage(`theme deve ser um de: ${THEMES.join(", ")}`),
+];
+
 const changePasswordRules = [
   body("senhaAtual").notEmpty().withMessage("Senha atual é obrigatória"),
   body("novaSenha").isLength({ min: 8 }).withMessage("A nova senha deve ter no mínimo 8 caracteres"),
@@ -59,6 +64,7 @@ module.exports = {
   forgotRules,
   resetRules,
   updateNameRules,
+  preferencesRules,
   changePasswordRules,
   taskRules,
 };

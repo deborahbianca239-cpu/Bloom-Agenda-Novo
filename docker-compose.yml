@@ -1,0 +1,45 @@
+# Ambiente local de testes (Postgres isolado — não usa o banco de produção do .env).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bloom_agenda
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev_local
+    volumes:
+      - bloom_pgdata:/var/lib/postgresql/data
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3006
+      CORS_ORIGIN: "*"
+      FRONTEND_URL: http://localhost:3006
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres_dev_local
+      DB_NAME: bloom_agenda
+      DB_SSL: "false"
+      JWT_SECRET: dev-local-secret-change-me
+      JWT_EXPIRES_IN: 7d
+      JWT_RESET_SECRET: dev-local-reset-secret-change-me
+      JWT_RESET_EXPIRES_IN: 30m
+      BCRYPT_ROUNDS: 10
+    ports:
+      - "3006:3006"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  bloom_pgdata:

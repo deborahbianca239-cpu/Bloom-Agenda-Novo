@@ -2,7 +2,7 @@
    - Precache do "shell" (mesma origem) para abrir offline.
    - Nunca intercepta /api/ (sempre rede).
 */
-const CACHE = "bloom-agenda-v1";
+const CACHE = "bloom-agenda-v2";
 
 const SHELL = [
   "/html/index.html",
@@ -16,6 +16,20 @@ const SHELL = [
   "/css/style.css",
   "/js/api.js",
   "/js/pwa.js",
+  "/js/tema.js",
+  "/js/ia-assistente.js",
+  "/js/offline-store.js",
+  "/js/voz.js",
+  // Libs vendorizadas (antes vinham de CDN — precisam ser same-origin
+  // pra funcionar totalmente offline numa abertura "a frio").
+  "/css/vendor/bootstrap.min.css",
+  "/css/vendor/bootstrap-icons.css",
+  "/css/vendor/fonts/bootstrap-icons.woff2",
+  "/css/vendor/fonts/bootstrap-icons.woff",
+  "/css/vendor/flatpickr.min.css",
+  "/js/vendor/bootstrap.bundle.min.js",
+  "/js/vendor/flatpickr.min.js",
+  "/js/vendor/flatpickr-pt.js",
 ];
 
 self.addEventListener("install", (event) => {

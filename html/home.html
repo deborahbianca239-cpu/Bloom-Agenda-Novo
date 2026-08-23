@@ -2,29 +2,21 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <script>try{var t=localStorage.getItem("bloom_tema");if(!t&&localStorage.getItem("bloom_colorblind")==="true")t="daltonico";if(t&&t!=="azul")document.documentElement.setAttribute("data-tema",t);if(t==="preto")document.documentElement.setAttribute("data-bs-theme","dark");}catch(e){}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bloom Agenda</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="../css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="../css/vendor/bootstrap-icons.css" />
+    <link rel="stylesheet" href="../css/vendor/flatpickr.min.css" />
     <link rel="stylesheet" href="../css/style.css" />
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.webmanifest" />
-    <meta name="theme-color" content="#ff6b9d" />
+    <meta name="theme-color" content="#2563eb" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
   </head>
   <body class="bloom-home">
@@ -39,6 +31,12 @@
           <div class="greet" id="greeting">Olá</div>
           <div class="date" id="fullDate"></div>
         </div>
+
+        <span class="sync-indicator" id="syncIndicator" title="Sincronizado">🟢</span>
+
+        <button class="btn-mic-header d-none" id="btnVoz" onclick="ditarTarefa()" title="Ditar nova tarefa por voz">
+          <i class="bi bi-mic"></i>
+        </button>
 
         <div class="bloom-profile dropdown">
           <button
@@ -207,7 +205,16 @@
               <input type="hidden" id="taskId" />
               <div class="mb-3">
                 <label class="form-label" for="taskTitle">Título</label>
-                <input type="text" class="form-control" id="taskTitle" placeholder="Ex: Reunião de equipe" required />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="taskTitle"
+                  placeholder="Ex: Reunião de equipe"
+                  list="taskTitleList"
+                  autocomplete="off"
+                  required
+                />
+                <datalist id="taskTitleList"></datalist>
               </div>
               <div class="mb-3">
                 <label class="form-label" for="taskDesc">Descrição</label>
@@ -223,6 +230,7 @@
                   <input type="time" class="form-control" id="taskTime" />
                 </div>
               </div>
+              <div class="ia-previsao-hint d-none" id="iaPrevisaoHint"></div>
               <div class="row g-2">
                 <div class="col-6">
                   <label class="form-label" for="taskPrio">Prioridade</label>
@@ -268,11 +276,51 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/pt.js"></script>
+    <!-- ============ Seletor de tema (botão circular expansível) ============ -->
+    <!-- ============ Assistente Inteligente (chat) ============ -->
+    <div class="ia-chat-wrap" id="iaChatWrap">
+      <div class="ia-chat-painel" id="iaChatPainel">
+        <div class="ia-chat-header">
+          <span>🌸 Assistente</span>
+          <button type="button" class="ia-chat-fechar" id="iaChatFechar" aria-label="Fechar assistente">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="ia-chat-mensagens" id="iaChatMensagens"></div>
+        <form class="ia-chat-form" id="iaChatForm">
+          <input type="text" id="iaChatInput" placeholder="Digite uma tarefa..." autocomplete="off" />
+          <button type="submit" aria-label="Enviar"><i class="bi bi-send-fill"></i></button>
+        </form>
+      </div>
+      <button type="button" class="ia-chat-fab" id="iaChatFabBtn" title="Assistente Inteligente" aria-label="Abrir assistente" aria-expanded="false">
+        <i class="bi bi-chat-dots-fill"></i>
+        <span class="ia-chat-badge d-none" id="iaChatBadge">0</span>
+      </button>
+    </div>
+
+    <div class="tema-fab-wrap" id="temaFabWrap">
+      <div class="tema-fab-opcoes" id="temaFabOpcoes">
+        <button class="tema-swatch" data-tema="azul" title="Azul" style="--swatch-cor:#2563eb"></button>
+        <button class="tema-swatch" data-tema="rosa" title="Rosa" style="--swatch-cor:#ff6b9d"></button>
+        <button class="tema-swatch" data-tema="branco" title="Branco" style="--swatch-cor:#f8fafc"></button>
+        <button class="tema-swatch" data-tema="amarelo" title="Amarelo" style="--swatch-cor:#ca8a04"></button>
+        <button class="tema-swatch" data-tema="preto" title="Preto" style="--swatch-cor:#1e293b"></button>
+        <button class="tema-swatch" data-tema="daltonico" title="Daltônico" style="--swatch-cor:#0072b2"></button>
+      </div>
+      <button class="tema-fab" id="temaFabBtn" title="Escolher tema" aria-label="Escolher tema" aria-expanded="false">
+        <i class="bi bi-palette2"></i>
+      </button>
+    </div>
+
+    <script src="../js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="../js/vendor/flatpickr.min.js"></script>
+    <script src="../js/vendor/flatpickr-pt.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/pwa.js"></script>
+    <script src="../js/tema.js"></script>
+    <script src="../js/ia-assistente.js"></script>
+    <script src="../js/offline-store.js"></script>
+    <script src="../js/voz.js"></script>
     <script>
       /* ===================== Guarda de sessão ===================== */
       if (!BloomAPI.isAuthenticated()) {
@@ -334,18 +382,423 @@
         return tarefas.find((t) => String(t.id) === String(id));
       }
 
-      /* ===================== Carregamento (API) ===================== */
+      /* ===================== Carregamento (offline-first) =====================
+         BloomOffline.refresh() tenta a API e mescla com o IndexedDB local; se não
+         houver rede, cai de volta pros dados já salvos localmente sem lançar erro. */
       async function reload() {
         try {
-          const data = await BloomAPI.tasks.list();
-          tarefas = (data.tasks || []).map(normalize);
+          const dados = await BloomOffline.refresh();
+          tarefas = dados.map(normalize);
           render();
+          atualizarSugestoesIA();
         } catch (err) {
-          if (err.status === 401) return; // sessão encerrada → redireciona via api.js
           console.error(err);
-          alert(err.message || "Erro ao carregar tarefas.");
         }
       }
+
+      /* ===================== Assistente Inteligente (local, offline, em chat) =====================
+         Aprende com o próprio histórico do usuário (guardado no IndexedDB) para sugerir
+         compromissos recorrentes e prever horário/categoria ao criar uma nova tarefa.
+         Apresentado como um chat: sugestões e previsões chegam como mensagens do
+         "assistente", com botões de ação embutidos na própria bolha. */
+      const idUsuarioIA = usuario ? BloomIA.idUsuario(usuario) : null;
+
+      let mensagensChat = [];
+      let proximoMsgId = 1;
+      const sugestoesJaPostadas = new Set(); // evita repostar a mesma sugestão a cada reload()
+      let chatAberto = false;
+      let saudacaoMostrada = false;
+      let naoLidas = 0;
+
+      function atualizarBadgeChat() {
+        const badge = document.getElementById("iaChatBadge");
+        if (naoLidas > 0) {
+          badge.textContent = naoLidas > 9 ? "9+" : String(naoLidas);
+          badge.classList.remove("d-none");
+        } else {
+          badge.classList.add("d-none");
+        }
+      }
+
+      function adicionarMensagem(msg) {
+        msg.id = proximoMsgId++;
+        mensagensChat.push(msg);
+        if (chatAberto) {
+          renderChat();
+        } else if (msg.autor === "assistente") {
+          naoLidas++;
+          atualizarBadgeChat();
+        }
+        return msg.id;
+      }
+
+      function mensagemHTML(m) {
+        if (m.tipo === "texto") {
+          return `<div class="ia-chat-msg ${m.autor}">${escapeHtml(m.texto)}</div>`;
+        }
+        if (m.resolvida) {
+          return `<div class="ia-chat-msg assistente">${escapeHtml(m.resolvidaTexto)}</div>`;
+        }
+        if (m.tipo === "sugestao") {
+          return `
+            <div class="ia-chat-msg assistente">
+              💡 ${escapeHtml(m.sugestao.motivo)}
+              <div class="ia-chat-acoes">
+                <button class="btn btn-bloom btn-sm" onclick="aceitarSugestaoChat(${m.id})">Adicionar</button>
+                <button class="btn btn-bloom-soft btn-sm" onclick="dispensarSugestaoChat(${m.id})">Dispensar</button>
+              </div>
+            </div>`;
+        }
+        if (m.tipo === "previsao") {
+          return `
+            <div class="ia-chat-msg assistente">
+              ${escapeHtml(m.texto)}
+              <div class="ia-chat-acoes">
+                <button class="btn btn-bloom btn-sm" onclick="aceitarPrevisaoChat(${m.id})">Adicionar pra hoje</button>
+              </div>
+            </div>`;
+        }
+        if (m.tipo === "lista") {
+          const linhas = m.itens
+            .map((t) => {
+              const hora = t.time ? t.time : "--:--";
+              const dataFmt = t.date.split("-").reverse().join("/");
+              return `<div class="ia-chat-item" onclick="editarTarefaChat('${t.id}')">
+                ${t.done ? "✅" : "🕒"} ${escapeHtml(t.title)} — ${dataFmt} ${hora}
+              </div>`;
+            })
+            .join("");
+          return `<div class="ia-chat-msg assistente">${escapeHtml(m.texto)}<div class="ia-chat-lista">${linhas}</div></div>`;
+        }
+        return "";
+      }
+
+      function renderChat() {
+        const box = document.getElementById("iaChatMensagens");
+        box.innerHTML = mensagensChat.map(mensagemHTML).join("");
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function toggleChat(forcarAberto) {
+        chatAberto = typeof forcarAberto === "boolean" ? forcarAberto : !chatAberto;
+        document.getElementById("iaChatWrap").classList.toggle("aberto", chatAberto);
+        document.getElementById("iaChatFabBtn").setAttribute("aria-expanded", chatAberto ? "true" : "false");
+        if (chatAberto) {
+          if (!saudacaoMostrada) {
+            saudacaoMostrada = true;
+            adicionarMensagem({
+              autor: "assistente",
+              tipo: "texto",
+              texto:
+                "Oi! Eu aprendo com as tarefas que você já cadastrou pra sugerir horários e compromissos recorrentes. Digite um título aqui embaixo que eu tento adivinhar o resto. 🌸",
+            });
+          }
+          naoLidas = 0;
+          atualizarBadgeChat();
+          renderChat();
+          document.getElementById("iaChatInput").focus();
+        }
+      }
+
+      async function atualizarSugestoesIA() {
+        if (!idUsuarioIA) return;
+        try {
+          await BloomIA.sincronizar(tarefas, idUsuarioIA);
+          const sugestoes = await BloomIA.gerarSugestoes(idUsuarioIA, tarefas);
+          for (const s of sugestoes) {
+            const chave = s.tituloNormalizado + "|" + s.dataAlvo;
+            if (sugestoesJaPostadas.has(chave)) continue;
+            sugestoesJaPostadas.add(chave);
+            adicionarMensagem({ autor: "assistente", tipo: "sugestao", sugestao: s });
+          }
+        } catch (err) {
+          console.warn("[IA] Não foi possível gerar sugestões:", err);
+        }
+      }
+
+      async function aceitarSugestaoChat(id) {
+        const m = mensagensChat.find((x) => x.id === id);
+        if (!m || m.resolvida) return;
+        const s = m.sugestao;
+        await BloomOffline.createTask({
+          title: s.titulo,
+          description: "",
+          task_date: s.dataAlvo,
+          task_time: s.horario || null,
+          priority: TO_API_PRIO[s.prioridade] || "MEDIUM",
+          category: s.categoria || "Pessoal",
+        });
+        m.resolvida = true;
+        m.resolvidaTexto = `✅ Adicionei "${s.titulo}" pra ${s.dataAlvo === hojeStr() ? "hoje" : "amanhã"}.`;
+        renderChat();
+        await reload();
+      }
+
+      function dispensarSugestaoChat(id) {
+        const m = mensagensChat.find((x) => x.id === id);
+        if (!m || m.resolvida || !idUsuarioIA) return;
+        BloomIA.dispensarSugestao(idUsuarioIA, m.sugestao.tituloNormalizado, m.sugestao.dataAlvo);
+        m.resolvida = true;
+        m.resolvidaTexto = "Ok, não vou sugerir isso de novo por enquanto.";
+        renderChat();
+      }
+
+      async function aceitarPrevisaoChat(id) {
+        const m = mensagensChat.find((x) => x.id === id);
+        if (!m || m.resolvida) return;
+        const d = m.dados;
+        await BloomOffline.createTask({
+          title: d.titulo,
+          description: "",
+          task_date: hojeStr(),
+          task_time: d.horario || null,
+          priority: TO_API_PRIO[d.prioridade] || "MEDIUM",
+          category: d.categoria || "Pessoal",
+        });
+        m.resolvida = true;
+        m.resolvidaTexto = `✅ Adicionei "${d.titulo}" pra hoje.`;
+        renderChat();
+        await reload();
+      }
+
+      /* Busca por palavra (parcial, sem acento/maiúsculas) nas tarefas já
+         carregadas — não precisa estar escrito completo ("reuni" já acha
+         "Reunião de equipe"). Puramente local, sem IA generativa. */
+      function buscarTarefasPorPalavra(termo) {
+        const alvo = BloomIA.normalizar(termo);
+        if (!alvo) return [];
+        return tarefas.filter((t) => BloomIA.normalizar(`${t.title} ${t.desc || ""}`).includes(alvo));
+      }
+
+      function editarTarefaChat(id) {
+        toggleChat(false);
+        editarTarefa(id);
+      }
+
+      /* Reconhece pedidos de filtro digitados naturalmente no chat — não só
+         a palavra exata dos chips ("Hoje"), mas frases tipo "tarefas de
+         hoje", "tarefas para amanhã", "minhas pendentes". Estratégia: tira
+         as palavras de "enchimento" (tarefa, de, para, minhas...) e checa
+         se o que sobra é um dos conceitos conhecidos — assim "reunião de
+         hoje" (sobra "reuniao hoje") não vira filtro, só "tarefas de hoje"
+         (sobra "hoje") vira. */
+      const FILTRO_FILLERS = new Set([
+        "tarefa", "tarefas", "compromisso", "compromissos", "minha", "minhas",
+        "meu", "meus", "eu", "de", "da", "do", "das", "dos", "para", "pra",
+        "o", "a", "os", "as", "que", "tenho", "tem", "ter", "mostra",
+        "mostrar", "mostre", "ver", "veja", "quais", "sao", "e", "tudo",
+        "prioridade", "essa", "esta", "nessa", "nesta", "com", "quero",
+        "gostaria", "pode", "poderia", "me",
+      ]);
+      function limparFillersChat(texto) {
+        return BloomIA.normalizar(texto)
+          .split(/\s+/)
+          .filter((p) => p && !FILTRO_FILLERS.has(p))
+          .join(" ")
+          .trim();
+      }
+      function inicioDaSemana(baseStr) {
+        const d = new Date(baseStr + "T00:00:00");
+        const dia = d.getDay(); // 0 = domingo
+        d.setDate(d.getDate() + (dia === 0 ? -6 : 1 - dia)); // segunda-feira
+        return toKey(d);
+      }
+      const FILTROS_CHAT = {
+        todas: (t) => !t.done,
+        hoje: (t) => !t.done && t.date === hojeStr(),
+        amanha: (t) => !t.done && t.date === addDias(hojeStr(), 1),
+        pendentes: (t) => !t.done,
+        concluidas: (t) => t.done,
+        atrasadas: (t) => !t.done && t.date < hojeStr(),
+        alta: (t) => !t.done && t.prio === "alta",
+        media: (t) => !t.done && t.prio === "media",
+        baixa: (t) => !t.done && t.prio === "baixa",
+        semana: (t) => {
+          const ini = inicioDaSemana(hojeStr());
+          const fim = addDias(ini, 6);
+          return !t.done && t.date >= ini && t.date <= fim;
+        },
+      };
+      const FILTRO_LABEL_CHAT = {
+        todas: "Todas",
+        hoje: "Hoje",
+        amanha: "Amanhã",
+        pendentes: "Pendentes",
+        concluidas: "Concluídas",
+        atrasadas: "Atrasadas",
+        alta: "Alta prioridade",
+        media: "Média prioridade",
+        baixa: "Baixa prioridade",
+        semana: "Essa semana",
+      };
+      function reconhecerFiltroChat(texto) {
+        const limpo = limparFillersChat(texto);
+        if (["", "todas", "todos", "toda"].includes(limpo)) return "todas";
+        if (limpo === "hoje") return "hoje";
+        if (limpo === "amanha") return "amanha";
+        if (["pendente", "pendentes"].includes(limpo)) return "pendentes";
+        if (limpo.startsWith("conclu")) return "concluidas";
+        if (limpo.startsWith("atrasad")) return "atrasadas";
+        if (limpo === "alta") return "alta";
+        if (limpo === "media") return "media";
+        if (limpo === "baixa") return "baixa";
+        if (limpo === "semana") return "semana";
+        return null;
+      }
+
+      // Comando explícito: "criar tarefa X", "crie X", "adicionar tarefa X", "nova tarefa X".
+      // Reaproveita o mesmo interpretador de data/horário do microfone (js/voz.js) —
+      // parseFalaTarefa fica disponível mesmo sem suporte a voz no navegador.
+      const REGEX_COMANDO_CRIAR = /^(?:criar?|crie|adicionar|nova)\s+(?:uma\s+)?(?:tarefa\s+)?(.+)/i;
+
+      async function criarTarefaViaChat(descricao) {
+        const parse = BloomVoz.parseFalaTarefa(descricao);
+        const pred = await BloomIA.prever(idUsuarioIA, parse.titulo);
+        const dataAlvo = parse.data || hojeStr();
+        const horario = parse.horario || pred?.horario || null;
+
+        await BloomOffline.createTask({
+          title: parse.titulo,
+          description: "",
+          task_date: dataAlvo,
+          task_time: horario,
+          priority: TO_API_PRIO[pred?.prioridade] || "MEDIUM",
+          category: pred?.categoria || "Pessoal",
+        });
+
+        const quando = dataAlvo === hojeStr() ? "hoje" : dataAlvo.split("-").reverse().join("/");
+        const horaTxt = horario ? ` às ${horario}` : " (sem horário definido — pode editar depois)";
+        adicionarMensagem({
+          autor: "assistente",
+          tipo: "texto",
+          texto: `✅ Criei "${parse.titulo}" pra ${quando}${horaTxt}.`,
+        });
+        await reload();
+      }
+
+      document.getElementById("iaChatFabBtn").addEventListener("click", () => toggleChat());
+      document.getElementById("iaChatFechar").addEventListener("click", () => toggleChat(false));
+
+      document.getElementById("iaChatForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("iaChatInput");
+        const texto = input.value.trim();
+        if (!texto) return;
+        input.value = "";
+        adicionarMensagem({ autor: "usuario", tipo: "texto", texto });
+
+        if (!idUsuarioIA) {
+          adicionarMensagem({ autor: "assistente", tipo: "texto", texto: "Ainda não consigo te ajudar sem estar logado." });
+          return;
+        }
+
+        // 0) Comando explícito de criação tem prioridade sobre busca/previsão.
+        const comando = texto.match(REGEX_COMANDO_CRIAR);
+        if (comando && comando[1].trim()) {
+          await criarTarefaViaChat(comando[1].trim());
+          return;
+        }
+
+        // 1) Palavra-chave de filtro (mesmas dos chips: Todas/Hoje/Pendentes/Concluídas/Alta prioridade).
+        const filtroChat = reconhecerFiltroChat(texto);
+        if (filtroChat) {
+          const filtradas = tarefas
+            .filter(FILTROS_CHAT[filtroChat])
+            .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+          if (filtradas.length) {
+            adicionarMensagem({
+              autor: "assistente",
+              tipo: "lista",
+              texto: `${FILTRO_LABEL_CHAT[filtroChat]} (${filtradas.length}):`,
+              itens: filtradas.slice(0, 8),
+            });
+          } else {
+            adicionarMensagem({
+              autor: "assistente",
+              tipo: "texto",
+              texto: `Nenhuma tarefa em "${FILTRO_LABEL_CHAT[filtroChat]}" no momento. 🌷`,
+            });
+          }
+          return;
+        }
+
+        // 2) Existe alguma tarefa (de qualquer data) com essa palavra? Mostra a lista.
+        const encontradas = buscarTarefasPorPalavra(texto);
+        if (encontradas.length) {
+          const ordenadas = encontradas.slice().sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+          adicionarMensagem({
+            autor: "assistente",
+            tipo: "lista",
+            texto: `Encontrei ${ordenadas.length} tarefa${ordenadas.length > 1 ? "s" : ""} com "${texto}":`,
+            itens: ordenadas.slice(0, 8),
+          });
+          return;
+        }
+
+        // 3) Nada existente com esse termo — tenta prever um horário/categoria pra criar de novo.
+        const pred = await BloomIA.prever(idUsuarioIA, texto);
+        if (!pred) {
+          adicionarMensagem({
+            autor: "assistente",
+            tipo: "texto",
+            texto: `Ainda não conheço "${texto}" bem o suficiente. Crie normalmente pelo botão "Nova tarefa" — com o tempo eu aprendo o padrão. 🌱`,
+          });
+          return;
+        }
+        const partes = [];
+        if (pred.horario) partes.push(`às ${pred.horario}`);
+        if (pred.categoria) partes.push(`categoria ${pred.categoria}`);
+        adicionarMensagem({
+          autor: "assistente",
+          tipo: "previsao",
+          texto: `Você geralmente faz "${texto}" ${partes.join(", ")}. Quer que eu adicione pra hoje?`,
+          dados: { titulo: texto, horario: pred.horario, categoria: pred.categoria, prioridade: pred.prioridade },
+        });
+      });
+
+      /* Autocompletar título + prever horário/categoria com base no histórico. */
+      let debounceTituloIA = null;
+      document.getElementById("taskTitle").addEventListener("input", (e) => {
+        if (!idUsuarioIA) return;
+        clearTimeout(debounceTituloIA);
+        const valor = e.target.value;
+        debounceTituloIA = setTimeout(async () => {
+          const opcoes = await BloomIA.autocompletar(idUsuarioIA, valor);
+          document.getElementById("taskTitleList").innerHTML = opcoes
+            .map((t) => `<option value="${escapeHtml(t)}"></option>`)
+            .join("");
+        }, 150);
+      });
+
+      document.getElementById("taskTitle").addEventListener("change", async (e) => {
+        const hint = document.getElementById("iaPrevisaoHint");
+        // Só preenche automaticamente ao criar uma tarefa nova (não sobrescreve edição).
+        if (!idUsuarioIA || document.getElementById("taskId").value) return;
+        const pred = await BloomIA.prever(idUsuarioIA, e.target.value);
+        if (!pred) {
+          hint.classList.add("d-none");
+          return;
+        }
+        const campoHora = document.getElementById("taskTime");
+        const partes = [];
+        if (!campoHora.value && pred.horario) {
+          campoHora.value = pred.horario;
+          partes.push(`horário ${pred.horario}`);
+        }
+        if (pred.categoria) {
+          document.getElementById("taskCat").value = pred.categoria;
+          partes.push(`categoria ${pred.categoria}`);
+        }
+        if (pred.prioridade) {
+          document.getElementById("taskPrio").value = pred.prioridade;
+        }
+        if (partes.length) {
+          hint.textContent = `💡 Preenchido com base no seu histórico: ${partes.join(" e ")}.`;
+          hint.classList.remove("d-none");
+        } else {
+          hint.classList.add("d-none");
+        }
+      });
 
       /* ===================== Header dinâmico ===================== */
       function initHeader() {
@@ -369,27 +822,85 @@
         document.getElementById("userEmail").textContent = usuario?.email || "Conta";
       }
 
+      /* ===================== Indicador de conexão =====================
+         🟢 sincronizado · 🟡 sincronizando · 🔴 offline (mudanças ficam na fila) */
+      const SYNC_ICON = { green: "🟢", yellow: "🟡", red: "🔴" };
+      const SYNC_TITLE = {
+        green: "Sincronizado",
+        yellow: "Sincronizando...",
+        red: "Offline — alterações serão sincronizadas quando a conexão voltar",
+      };
+      function initIndicadorConexao() {
+        const el = document.getElementById("syncIndicator");
+        const aplicar = (status) => {
+          const estado = status.state || "green";
+          el.textContent = SYNC_ICON[estado] || SYNC_ICON.green;
+          let titulo = SYNC_TITLE[estado] || SYNC_TITLE.green;
+          if (estado === "red" && status.pending > 0) {
+            titulo += ` (${status.pending} pendente${status.pending > 1 ? "s" : ""})`;
+          }
+          el.title = titulo;
+        };
+        aplicar(BloomOffline.getSyncStatus());
+        BloomOffline.onStatusChange(aplicar);
+      }
+
+      /* ===================== Seletor de tema (botão circular) ===================== */
+      function initSeletorTema() {
+        const wrap = document.getElementById("temaFabWrap");
+        const btn = document.getElementById("temaFabBtn");
+        const marcarAtivo = () => {
+          const atual = BloomTema.obterTema();
+          document.querySelectorAll(".tema-swatch").forEach((sw) => {
+            sw.classList.toggle("ativo", sw.dataset.tema === atual);
+          });
+        };
+
+        btn.addEventListener("click", () => {
+          const aberto = wrap.classList.toggle("aberto");
+          btn.setAttribute("aria-expanded", aberto ? "true" : "false");
+        });
+
+        document.querySelectorAll(".tema-swatch").forEach((sw) => {
+          sw.addEventListener("click", async () => {
+            await BloomTema.definir(sw.dataset.tema);
+            marcarAtivo();
+            wrap.classList.remove("aberto");
+            btn.setAttribute("aria-expanded", "false");
+          });
+        });
+
+        // Fecha ao clicar fora.
+        document.addEventListener("click", (e) => {
+          if (!wrap.contains(e.target)) wrap.classList.remove("aberto");
+        });
+
+        marcarAtivo();
+      }
+
       /* ===================== Render de tarefa ===================== */
       function taskHTML(t) {
         const p = PRIO[t.prio] || PRIO.media;
         const hora = t.time ? t.time : "--:--";
+        const atrasada = !t.done && t.date < hojeStr();
         return `
           <div class="task-item ${t.done ? "completed" : ""}" data-prio="${t.prio}" data-id="${t.id}">
-            <button class="task-check" title="Concluir" onclick="toggleDone(${t.id})">
+            <button class="task-check" title="Concluir" onclick="toggleDone('${t.id}')">
               <i class="bi bi-check-lg"></i>
             </button>
             <span class="task-time">${hora}</span>
-            <div class="task-body" onclick="editarTarefa(${t.id})" title="Editar tarefa">
+            <div class="task-body" onclick="editarTarefa('${t.id}')" title="Editar tarefa">
               <div class="task-title">${escapeHtml(t.title)}</div>
               <div class="task-meta">
                 <span class="prio-badge ${p.cls}">${p.dot} ${p.label}</span>
+                ${atrasada ? `<span class="badge-atrasada">⚠️ Atrasada</span>` : ""}
                 ${t.cat ? `<span class="cat-badge">${escapeHtml(t.cat)}</span>` : ""}
                 ${t.desc ? `<span><i class="bi bi-card-text"></i> ${escapeHtml(t.desc).slice(0, 40)}</span>` : ""}
               </div>
             </div>
             <div class="task-actions">
-              <button class="btn" title="Editar" onclick="editarTarefa(${t.id})"><i class="bi bi-pencil"></i></button>
-              <button class="btn del" title="Excluir" onclick="excluirTarefa(${t.id})"><i class="bi bi-trash"></i></button>
+              <button class="btn" title="Editar" onclick="editarTarefa('${t.id}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn del" title="Excluir" onclick="excluirTarefa('${t.id}')"><i class="bi bi-trash"></i></button>
             </div>
           </div>`;
       }
@@ -510,27 +1021,21 @@
         document.getElementById("ringLabel").textContent = pct + "%";
       }
 
-      /* ===================== Ações (API) ===================== */
+      /* ===================== Ações (offline-first, via BloomOffline) =====================
+         Cada ação grava no IndexedDB e enfileira a sincronização na hora — nunca
+         lança erro pro chamador, então a UI trata a ação como sempre bem-sucedida
+         (o indicador de conexão no header mostra o estado real da sincronização). */
       async function toggleDone(id) {
         const t = findTask(id);
         if (!t) return;
-        try {
-          if (t.done) await BloomAPI.tasks.uncomplete(id);
-          else await BloomAPI.tasks.complete(id);
-          await reload();
-        } catch (err) {
-          alert(err.message || "Erro ao atualizar tarefa.");
-        }
+        await BloomOffline.setCompleted(id, !t.done);
+        await reload();
       }
 
       async function excluirTarefa(id) {
         if (!confirm("Excluir esta tarefa?")) return;
-        try {
-          await BloomAPI.tasks.remove(id);
-          await reload();
-        } catch (err) {
-          alert(err.message || "Erro ao excluir tarefa.");
-        }
+        await BloomOffline.deleteTask(id);
+        await reload();
       }
 
       const taskModal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById("taskModal"));
@@ -541,6 +1046,34 @@
         document.getElementById("taskModalTitle").textContent = "Nova tarefa";
         document.getElementById("taskDate").value = dataSelecionada || hojeStr();
         document.getElementById("taskPrio").value = "media";
+        document.getElementById("iaPrevisaoHint").classList.add("d-none");
+      }
+
+      /* ===================== Ditar tarefa por voz (extra) =====================
+         Recurso isolado: só aparece se o navegador suportar Web Speech API.
+         Nunca salva direto — abre o modal já preenchido pra revisão. */
+      if (window.BloomVoz?.suportado) {
+        document.getElementById("btnVoz").classList.remove("d-none");
+      }
+
+      async function ditarTarefa() {
+        const btn = document.getElementById("btnVoz");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-mic-fill text-danger"></i>';
+        try {
+          const transcript = await BloomVoz.ouvir();
+          const { titulo, data, horario } = BloomVoz.parseFalaTarefa(transcript);
+          novaTarefa();
+          document.getElementById("taskTitle").value = titulo;
+          if (data) document.getElementById("taskDate").value = data;
+          if (horario) document.getElementById("taskTime").value = horario;
+          taskModal().show();
+        } catch (err) {
+          alert(err.message || "Não foi possível reconhecer a fala. Tente novamente.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-mic"></i>';
+        }
       }
 
       function editarTarefa(id) {
@@ -554,6 +1087,7 @@
         document.getElementById("taskTime").value = t.time || "";
         document.getElementById("taskPrio").value = t.prio;
         document.getElementById("taskCat").value = t.cat || "Pessoal";
+        document.getElementById("iaPrevisaoHint").classList.add("d-none");
         taskModal().show();
       }
 
@@ -570,14 +1104,10 @@
         };
         if (!payload.title || !payload.task_date) return;
 
-        try {
-          if (id) await BloomAPI.tasks.update(id, payload);
-          else await BloomAPI.tasks.create(payload);
-          taskModal().hide();
-          await reload();
-        } catch (err) {
-          alert(err.message || "Erro ao salvar tarefa.");
-        }
+        if (id) await BloomOffline.updateTask(id, payload);
+        else await BloomOffline.createTask(payload);
+        taskModal().hide();
+        await reload();
       });
 
       /* ===================== Ver todas ===================== */
@@ -647,7 +1177,9 @@
       /* ===================== Init ===================== */
       initHeader();
       initCalendario();
-      reload();
+      initIndicadorConexao();
+      initSeletorTema();
+      BloomOffline.init(idUsuarioIA).then(reload);
     </script>
   </body>
 </html>

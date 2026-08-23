@@ -1,7 +1,7 @@
 // Acesso a dados da tabela `users`. Apenas SQL — sem regra de negócio.
 const { query } = require("../database/pool");
 
-const SAFE_COLUMNS = "id, name, email, created_at, updated_at";
+const SAFE_COLUMNS = "id, name, email, theme, created_at, updated_at";
 
 async function create({ name, email, password }) {
   const { rows } = await query(
@@ -48,6 +48,15 @@ async function updateName(id, name) {
   return rows[0] || null;
 }
 
+async function updateTheme(id, theme) {
+  const { rows } = await query(
+    `UPDATE users SET theme = $1 WHERE id = $2
+     RETURNING ${SAFE_COLUMNS}`,
+    [theme, id]
+  );
+  return rows[0] || null;
+}
+
 module.exports = {
   create,
   findByEmail,
@@ -55,4 +64,5 @@ module.exports = {
   findByIdWithPassword,
   updatePassword,
   updateName,
+  updateTheme,
 };

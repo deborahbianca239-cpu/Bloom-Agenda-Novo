@@ -27,6 +27,11 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Nome atualizado!", user });
 });
 
+exports.updatePreferences = asyncHandler(async (req, res) => {
+  const user = await authService.updatePreferences(req.user.id, req.body);
+  res.json({ success: true, message: "Preferências atualizadas!", user });
+});
+
 exports.changePassword = asyncHandler(async (req, res) => {
   await authService.changePassword(req.user.id, req.body);
   res.json({ success: true, message: "Senha alterada com sucesso!" });

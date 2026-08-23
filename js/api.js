@@ -28,10 +28,16 @@
   const setUser = (u) => localStorage.setItem(USER_KEY, JSON.stringify(u));
   const isAuthenticated = () => !!getToken();
 
-  /* ---------- Núcleo de requisição ---------- */
-  async function request(path, { method = "GET", body, auth = true } = {}) {
+  /* ---------- Núcleo de requisição ----------
+     `silent`: usado pela sincronização em segundo plano (js/offline-store.js).
+     Evita encerrar a sessão sozinho num 401 disparado fora de uma ação
+     explícita do usuário — quem chama com silent decide o que fazer. */
+  async function request(path, { method = "GET", body, auth = true, silent = false, timeoutMs } = {}) {
     const headers = { "Content-Type": "application/json" };
     if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
+
+    const controller = timeoutMs ? new AbortController() : null;
+    const timer = timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : null;
 
     let res;
     try {
@@ -39,12 +45,15 @@
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
+        signal: controller ? controller.signal : undefined,
       });
     } catch {
       throw new ApiClientError(
         "Não foi possível conectar ao servidor. Verifique se o backend está rodando.",
         0
       );
+    } finally {
+      if (timer) clearTimeout(timer);
     }
 
     let data = {};
@@ -55,8 +64,8 @@
     }
 
     if (!res.ok) {
-      // Token expirado/ inválido → encerra sessão.
-      if (res.status === 401 && auth) clearSession();
+      // Token expirado/inválido → encerra sessão (exceto chamadas silenciosas).
+      if (res.status === 401 && auth && !silent) clearSession();
       throw new ApiClientError(
         data.message || "Erro na requisição",
         res.status,
@@ -100,23 +109,30 @@
     profile: () => request("/auth/profile"),
     updateName: (nome) =>
       request("/auth/profile", { method: "PUT", body: { nome } }),
+    updatePreferences: (theme, opts = {}) =>
+      request("/auth/preferences", { method: "PUT", body: { theme }, ...opts }),
   };
 
-  /* ---------- Tasks ---------- */
+  /* ---------- Tasks ----------
+     Todos os métodos aceitam um `opts` opcional ({silent, timeoutMs}) — usado
+     pela sincronização em segundo plano (js/offline-store.js). */
   const tasks = {
-    list: (filters = {}) => {
+    list: (filters = {}, opts = {}) => {
       const qs = new URLSearchParams(
         Object.entries(filters).filter(([, v]) => v !== "" && v != null)
       ).toString();
-      return request(`/tasks${qs ? "?" + qs : ""}`);
+      return request(`/tasks${qs ? "?" + qs : ""}`, opts);
     },
-    get: (id) => request(`/tasks/${id}`),
-    create: (payload) => request("/tasks", { method: "POST", body: payload }),
-    update: (id, payload) =>
-      request(`/tasks/${id}`, { method: "PUT", body: payload }),
-    complete: (id) => request(`/tasks/${id}/complete`, { method: "PATCH" }),
-    uncomplete: (id) => request(`/tasks/${id}/uncomplete`, { method: "PATCH" }),
-    remove: (id) => request(`/tasks/${id}`, { method: "DELETE" }),
+    get: (id, opts = {}) => request(`/tasks/${id}`, opts),
+    create: (payload, opts = {}) =>
+      request("/tasks", { method: "POST", body: payload, ...opts }),
+    update: (id, payload, opts = {}) =>
+      request(`/tasks/${id}`, { method: "PUT", body: payload, ...opts }),
+    complete: (id, opts = {}) =>
+      request(`/tasks/${id}/complete`, { method: "PATCH", ...opts }),
+    uncomplete: (id, opts = {}) =>
+      request(`/tasks/${id}/uncomplete`, { method: "PATCH", ...opts }),
+    remove: (id, opts = {}) => request(`/tasks/${id}`, { method: "DELETE", ...opts }),
   };
 
   /* ---------- Dashboard ---------- */
@@ -126,6 +142,11 @@
     upcoming: () => request("/dashboard/upcoming"),
     statistics: () => request("/dashboard/statistics"),
   };
+
+  /* Sonda de conectividade real (sem auth — nunca arrisca 401 espúrio).
+     Usada por js/offline-store.js antes de tentar sincronizar. */
+  const health = (timeoutMs = 3000) =>
+    request("/health", { auth: false, silent: true, timeoutMs });
 
   global.BloomAPI = {
     getToken,
@@ -137,6 +158,7 @@
     auth,
     tasks,
     dashboard,
+    health,
     ApiClientError,
   };
 })(window);

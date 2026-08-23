@@ -32,6 +32,13 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 
+-- Preferência de acessibilidade (modo daltônico) — mantida por compatibilidade,
+-- não é mais lida/escrita pela aplicação (substituída por "theme" abaixo).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS colorblind_mode BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Tema visual escolhido pelo usuário: azul (padrão), rosa, branco, amarelo, preto ou daltonico.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(20) NOT NULL DEFAULT 'azul';
+
 -- ---------------------------------------------------------------------
 -- Tabela: tasks
 -- ---------------------------------------------------------------------
